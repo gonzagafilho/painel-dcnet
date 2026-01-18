@@ -1,0 +1,27 @@
+.card-hover {
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 180px;
+
+  position: relative;
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 14px 32px rgba(0, 150, 255, 0.4);
+}
+
+.card-title {
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.card-value {
+  color: var(--neon-blue);
+  margin: 0;
+}

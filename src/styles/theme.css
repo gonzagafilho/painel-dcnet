@@ -1,4 +1,11 @@
 :root {
+  --font-main: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* {
+  font-family: var(--font-main);
+}
+
+:root {
   --bg-main: #0b0f1a;
   --bg-card: #11172a;
   --bg-sidebar: #0d1224;
@@ -12,4 +19,27 @@ body {
   background-color: var(--bg-main);
   color: var(--text-main);
   font-family: 'Inter', system-ui, sans-serif;
+}
+.card {
+  background-color: #111;
+  border-radius: 14px;
+  padding: 20px;
+  min-height: 110px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+.card-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: #00aaff;
 }
