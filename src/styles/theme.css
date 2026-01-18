@@ -1,0 +1,15 @@
+:root {
+  --bg-main: #0b0f1a;
+  --bg-card: #11172a;
+  --bg-sidebar: #0d1224;
+  --text-main: #e5e7eb;
+  --text-muted: #9ca3af;
+  --neon-blue: #00e5ff;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, sans-serif;
+}
