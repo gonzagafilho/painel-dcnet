@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import PrivateRoute from './components/PrivateRoute.jsx'
+import PrivateRoute from './routes/PrivateRoute.jsx'
+import { useAuth } from './context/AuthContext'
 
 import Sidebar from './components/Sidebar.jsx'
 import Header from './components/Header.jsx'
@@ -15,6 +16,7 @@ import { useState } from 'react'
 
 export default function App() {
   const [menuAberto, setMenuAberto] = useState(false)
+  const { logout } = useAuth()
 
   return (
     <Routes>
@@ -36,8 +38,7 @@ export default function App() {
                 <Header
                   onMenu={() => setMenuAberto(!menuAberto)}
                   onLogout={() => {
-                    localStorage.removeItem('token')
-                    localStorage.removeItem('user')
+                    logout()
                     window.location.href = '/login'
                   }}
                 />

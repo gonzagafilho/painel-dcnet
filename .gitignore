@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# dependencias
+node_modules
+
+# variaveis de ambiente
+.env
+
+# build frontend
+dist
