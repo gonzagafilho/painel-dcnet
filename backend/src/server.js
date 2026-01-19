@@ -1,13 +1,31 @@
 import express from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
 
-console.log('🔥 TESTE SERVER JS CARREGADO')
+// rotas
+import authRoutes from './src/routes/auth.js'
+import dashboardRoutes from './src/routes/dashboard.routes.js'
+
+dotenv.config()
 
 const app = express()
 
-app.get('/api/auth/me', (req, res) => {
-  res.json({ teste: 'OK', origem: 'server.js' })
+// middlewares globais
+app.use(cors())
+app.use(express.json())
+
+// rota de teste (opcional)
+app.get('/', (req, res) => {
+  res.json({ status: 'API DC NET ONLINE' })
 })
 
-app.listen(3001, () => {
-  console.log('🚀 TESTE SERVER ESCUTANDO 3001')
+// rotas reais da API
+app.use('/api/auth', authRoutes)
+app.use('/api/dashboard', dashboardRoutes)
+
+// porta
+const PORT = process.env.PORT || 3001
+
+app.listen(PORT, () => {
+  console.log(`🚀 API DC NET rodando na porta ${PORT}`)
 })
