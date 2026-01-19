@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { api } from '../services/api'
 
 const AuthContext = createContext()
 
@@ -7,25 +8,33 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('dcnet_token')
-    const savedUser = localStorage.getItem('dcnet_user')
+    const token = localStorage.getItem('token')
+    const userSalvo = localStorage.getItem('user')
 
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser))
+    if (token && userSalvo) {
+      setUser(JSON.parse(userSalvo))
     }
 
     setLoading(false)
   }, [])
 
-  function login(token, userData) {
-    localStorage.setItem('dcnet_token', token)
-    localStorage.setItem('dcnet_user', JSON.stringify(userData))
-    setUser(userData)
+  async function login(email, senha) {
+    const response = await api.post('/api/auth/login', {
+      email,
+      senha
+    })
+
+    const { token, user } = response.data
+
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
+
+    setUser(user)
   }
 
   function logout() {
-    localStorage.removeItem('dcnet_token')
-    localStorage.removeItem('dcnet_user')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     setUser(null)
   }
 

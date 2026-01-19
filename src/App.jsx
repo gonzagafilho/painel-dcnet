@@ -1,22 +1,23 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import PrivateRoute from './routes/PrivateRoute.jsx'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+
+import PrivateRoute from './routes/PrivateRoute'
 import { useAuth } from './context/AuthContext'
 
-import Sidebar from './components/Sidebar.jsx'
-import Header from './components/Header.jsx'
+import Sidebar from './components/Sidebar'
+import Header from './components/Header'
 
-import Login from './pages/Login.jsx'
-import Dashboard from './pages/Dashboard.jsx'
-import Site from './pages/Site.jsx'
-import Chatbot from './pages/Chatbot.jsx'
-import Clientes from './pages/Clientes.jsx'
-import Configuracoes from './pages/Configuracoes.jsx'
-
-import { useState } from 'react'
+import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import Site from './pages/Site'
+import Chatbot from './pages/Chatbot'
+import Clientes from './pages/Clientes'
+import Configuracoes from './pages/Configuracoes'
 
 export default function App() {
   const [menuAberto, setMenuAberto] = useState(false)
   const { logout } = useAuth()
+  const navigate = useNavigate()
 
   return (
     <Routes>
@@ -28,34 +29,41 @@ export default function App() {
         path="/*"
         element={
           <PrivateRoute>
-            <div style={{ display: 'flex', minHeight: '100vh' }}>
-              <Sidebar
-                aberto={menuAberto}
-                onClose={() => setMenuAberto(false)}
-              />
+            <div
+              style={{
+                display: 'flex',
+                minHeight: '100vh',
+                background: 'var(--bg-dark)',
+                color: 'var(--text)'
+              }}
+            >
+              <Sidebar />
 
               <div style={{ flex: 1 }}>
                 <Header
                   onMenu={() => setMenuAberto(!menuAberto)}
                   onLogout={() => {
                     logout()
-                    window.location.href = '/login'
+                    navigate('/login')
                   }}
                 />
 
-                <div style={{ padding: '20px' }}>
+                <main
+                  style={{
+                    padding: '24px',
+                    background: 'var(--bg-dark)',
+                    minHeight: 'calc(100vh - 60px)'
+                  }}
+                >
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/site" element={<Site />} />
-                    <Route path="/chatbot" element={<Chatbot />} />
-                    <Route path="/clientes" element={<Clientes />} />
-                    <Route
-                      path="/configuracoes"
-                      element={<Configuracoes />}
-                    />
-                    <Route path="*" element={<Navigate to="/" />} />
+                    <Route index element={<Dashboard />} />
+                    <Route path="site" element={<Site />} />
+                    <Route path="chatbot" element={<Chatbot />} />
+                    <Route path="clientes" element={<Clientes />} />
+                    <Route path="configuracoes" element={<Configuracoes />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
-                </div>
+                </main>
               </div>
             </div>
           </PrivateRoute>

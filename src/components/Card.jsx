@@ -1,8 +1,13 @@
-export default function Card({ titulo, valor }) {
+export default function Card({ title, value }) {
   return (
-    <div className="card-hover">
-      <p className="card-title">{titulo}</p>
-      <h2 className="card-value">{valor}</h2>
+    <div style={{
+      background: '#111',
+      border: '1px solid var(--neon-blue)',
+      padding: '20px',
+      borderRadius: '8px'
+    }}>
+      <h3>{title}</h3>
+      <strong>{value}</strong>
     </div>
   )
 }
