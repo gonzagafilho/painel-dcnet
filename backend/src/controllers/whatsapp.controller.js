@@ -1,6 +1,6 @@
-// import { enviarMensagemWhatsApp } from '../services/whatsapp.service.js'
 import { emHorarioComercial } from '../utils/horarioComercial.js'
 import { getDb } from '../database/mongoNative.js'
+import { processarMensagem } from '../services/chatbot/state.service.js'
 
 export default {
   // Verificação do webhook (GET)
@@ -36,7 +36,7 @@ export default {
       const from = message.from
       const text = message.text?.body || ''
 
-      // Salva atendimento
+      // Salva atendimento (mantido)
       await db.collection('atendimentos').insertOne({
         cliente: from,
         canal: 'whatsapp',
@@ -46,29 +46,17 @@ export default {
         updatedAt: new Date()
       })
 
-      // Define mensagem automática
-      const resposta = emHorarioComercial()
-        ? `Olá 👋 Bem-vindo à DC NET!
+      // ===============================
+      // F3.6 — CHATBOT POR ESTADOS
+      // (gera resposta, NÃO envia)
+      // ===============================
+      const respostaChatbot = await processarMensagem(from, text)
+      console.log('[CHATBOT][RESPOSTA GERADA]', respostaChatbot)
 
-Recebemos sua mensagem e seu atendimento foi registrado com sucesso.
-Em breve um de nossos atendentes irá responder.
-
-📡 DC NET — Conectando você ao mundo.`
-        : `Olá 👋 Bem-vindo à DC NET!
-
-Recebemos sua mensagem fora do horário comercial.
-Nosso atendimento funciona de segunda a sexta, das 8h às 18h.
-Retornaremos assim que possível.
-
-📡 DC NET — Conectando você ao mundo.`
-
-      // Envia resposta automática
-      await enviarMensagemWhatsApp(from, resposta)
-
-      console.log('📩 Mensagem WhatsApp recebida e respondida:', from)
+      console.log('📩 Mensagem WhatsApp recebida:', from)
       return res.sendStatus(200)
     } catch (error) {
-      console.error('Erro webhook WhatsApp (native):', error)
+      console.error('❌ Erro webhook WhatsApp:', error)
       return res.sendStatus(500)
     }
   }
