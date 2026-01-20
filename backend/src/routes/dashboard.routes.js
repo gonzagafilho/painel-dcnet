@@ -1,13 +1,20 @@
-import express from 'express'
-import auth from '../middlewares/auth.js'
-import DashboardController from '../controllers/dashboard.controller.js'
+import { Router } from 'express'
+import dashboardController from '../controllers/dashboard.controller.js'
+import authMiddleware from '../middlewares/authMiddleware.js'
 
-const router = express.Router()
+const router = Router()
 
-// ✅ JÁ EXISTENTE (mantém)
-router.get('/resumo', auth, DashboardController.resumo)
+// 🔐 Todas as rotas protegidas
+router.use(authMiddleware)
 
-// 🆕 NOVA ROTA (PASSO C)
-router.get('/atendimentos-dia', auth, DashboardController.atendimentosPorDia)
+// 📊 Resumo
+router.get('/resumo', dashboardController.resumo)
+
+// 📈 Gráfico diário
+router.get('/atendimentos-dia', dashboardController.atendimentosPorDia)
+
+// 🥧 Gráfico de status (NOVO)
+router.get('/atendimentos-status', dashboardController.atendimentosStatus)
 
 export default router
+

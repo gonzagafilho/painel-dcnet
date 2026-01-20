@@ -1,7 +1,7 @@
 import Atendimento from '../models/Atendimento.js'
 
 export default {
-  // ✅ JÁ EXISTENTE (mantido)
+  // ✅ RESUMO DO DASHBOARD
   resumo(req, res) {
     res.json({
       clientes: 154,
@@ -11,7 +11,7 @@ export default {
     })
   },
 
-  // 🆕 NOVO MÉTODO (PASSO C)
+  // ✅ GRÁFICO DIÁRIO (PASSO C)
   async atendimentosPorDia(req, res) {
     try {
       const dados = await Atendimento.aggregate([
@@ -38,6 +38,33 @@ export default {
     } catch (error) {
       console.error('Erro dashboard diário:', error)
       res.status(500).json({ erro: 'Erro ao gerar dados do gráfico' })
+    }
+  },
+
+  // 🆕 GRÁFICO DE STATUS (PASSO D)
+  async atendimentosStatus(req, res) {
+    try {
+      const resultado = await Atendimento.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            total: { $sum: 1 }
+          }
+        }
+      ])
+
+      let abertos = 0
+      let finalizados = 0
+
+      resultado.forEach(item => {
+        if (item._id === 'aberto') abertos = item.total
+        if (item._id === 'finalizado') finalizados = item.total
+      })
+
+      res.json({ abertos, finalizados })
+    } catch (error) {
+      console.error('Erro dashboard status:', error)
+      res.status(500).json({ erro: 'Erro ao gerar status dos atendimentos' })
     }
   }
 }
