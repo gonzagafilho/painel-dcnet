@@ -1,4 +1,3 @@
-import ChatState from '../models/ChatState.js';
 import { getMenuInicial, getPlanos } from './flow.service.js';
 import { definirFila } from './queue.service.js';
 
