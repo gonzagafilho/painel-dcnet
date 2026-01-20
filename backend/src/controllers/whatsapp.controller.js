@@ -1,4 +1,4 @@
-import { enviarMensagemWhatsApp } from '../services/whatsapp.service.js'
+// import { enviarMensagemWhatsApp } from '../services/whatsapp.service.js'
 import { emHorarioComercial } from '../utils/horarioComercial.js'
 import { getDb } from '../database/mongoNative.js'
 
