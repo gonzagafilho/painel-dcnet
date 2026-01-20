@@ -1,3 +1,5 @@
+import { enviarMensagemWhatsApp } from '../services/whatsapp.service.js'
+import { emHorarioComercial } from '../utils/horarioComercial.js'
 import { getDb } from '../database/mongoNative.js'
 
 export default {
@@ -34,6 +36,7 @@ export default {
       const from = message.from
       const text = message.text?.body || ''
 
+      // Salva atendimento
       await db.collection('atendimentos').insertOne({
         cliente: from,
         canal: 'whatsapp',
@@ -43,7 +46,26 @@ export default {
         updatedAt: new Date()
       })
 
-      console.log('📩 Mensagem WhatsApp recebida:', from, text)
+      // Define mensagem automática
+      const resposta = emHorarioComercial()
+        ? `Olá 👋 Bem-vindo à DC NET!
+
+Recebemos sua mensagem e seu atendimento foi registrado com sucesso.
+Em breve um de nossos atendentes irá responder.
+
+📡 DC NET — Conectando você ao mundo.`
+        : `Olá 👋 Bem-vindo à DC NET!
+
+Recebemos sua mensagem fora do horário comercial.
+Nosso atendimento funciona de segunda a sexta, das 8h às 18h.
+Retornaremos assim que possível.
+
+📡 DC NET — Conectando você ao mundo.`
+
+      // Envia resposta automática
+      await enviarMensagemWhatsApp(from, resposta)
+
+      console.log('📩 Mensagem WhatsApp recebida e respondida:', from)
       return res.sendStatus(200)
     } catch (error) {
       console.error('Erro webhook WhatsApp (native):', error)
@@ -51,4 +73,3 @@ export default {
     }
   }
 }
-
