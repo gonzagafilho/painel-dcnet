@@ -1,6 +1,6 @@
 import { emHorarioComercial } from '../utils/horarioComercial.js'
 import { getDb } from '../database/mongoNative.js'
-import { processarMensagem } from '../services/chatbot/state.service.js'
+import { processarMensagem } from '../chatbot/state.service.js';
 
 export default {
   // Verificação do webhook (GET)
