@@ -1,3 +1,5 @@
+import { emHorarioComercial } from '../utils/horarioComercial.js';
+
 export function definirFila(estado) {
   if (!emHorarioComercial()) {
     return {

@@ -22,3 +22,4 @@ export function getPlanos() {
 Digite o número do plano para falar com um consultor.
 `;
 }
+

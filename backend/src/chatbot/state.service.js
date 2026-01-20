@@ -1,3 +1,4 @@
+import ChatState from '../models/ChatState.js';
 import { getMenuInicial, getPlanos } from './flow.service.js';
 import { definirFila } from './queue.service.js';
 
@@ -16,9 +17,7 @@ export async function processarMensagem(telefone, mensagem) {
   state.ultimaMensagem = mensagem;
   state.updatedAt = new Date();
 
-  // =========================
   // MENU PRINCIPAL
-  // =========================
   if (state.estado === 'menu') {
     if (mensagem === '1') {
       state.estado = 'vendas';
@@ -42,12 +41,9 @@ export async function processarMensagem(telefone, mensagem) {
     }
 
     if (mensagem === '4') {
-      // Vai para fila conforme horário
       const fila = definirFila('humano');
-
       state.statusAtendimento = fila.statusAtendimento;
       state.setor = fila.setor || null;
-
       await state.save();
       return '👨‍💼 Encaminhando para um atendente.';
     }
@@ -55,11 +51,8 @@ export async function processarMensagem(telefone, mensagem) {
     return getMenuInicial();
   }
 
-  // =========================
-  // FORA DO MENU (JÁ ESCOLHEU SETOR)
-  // =========================
+  // FORA DO MENU
   const fila = definirFila(state.estado);
-
   state.statusAtendimento = fila.statusAtendimento;
   state.setor = fila.setor || state.setor;
 

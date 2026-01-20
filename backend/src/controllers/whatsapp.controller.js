@@ -1,41 +1,38 @@
-import { emHorarioComercial } from '../utils/horarioComercial.js'
-import { getDb } from '../database/mongoNative.js'
+import { getDb } from '../database/mongoNative.js';
+import { processarMensagem } from '../chatbot/state.service.js';
 
 export default {
   // Verificação do webhook (GET)
   verify(req, res) {
-    const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN
+    const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
-    const mode = req.query['hub.mode']
-    const token = req.query['hub.verify_token']
-    const challenge = req.query['hub.challenge']
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
 
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      console.log('✅ Webhook WhatsApp verificado')
-      return res.status(200).send(challenge)
+      console.log('✅ Webhook WhatsApp verificado');
+      return res.status(200).send(challenge);
     }
 
-    return res.sendStatus(403)
+    return res.sendStatus(403);
   },
 
   // Recebimento de mensagens (POST)
   async receive(req, res) {
     try {
-      const db = await getDb()
+      const db = await getDb();
 
-      const entry = req.body.entry?.[0]
-      const change = entry?.changes?.[0]
-      const value = change?.value
-      const message = value?.messages?.[0]
+      const entry = req.body.entry?.[0];
+      const change = entry?.changes?.[0];
+      const value = change?.value;
+      const message = value?.messages?.[0];
 
-      if (!message) {
-        return res.sendStatus(200)
-      }
+      if (!message) return res.sendStatus(200);
 
-      const from = message.from
-      const text = message.text?.body || ''
+      const from = message.from;
+      const text = message.text?.body || '';
 
-      // Salva atendimento (mantido)
       await db.collection('atendimentos').insertOne({
         cliente: from,
         canal: 'whatsapp',
@@ -43,20 +40,16 @@ export default {
         mensagemInicial: text,
         createdAt: new Date(),
         updatedAt: new Date()
-      })
+      });
 
-      // ===============================
-      // F3.6 — CHATBOT POR ESTADOS
-      // (gera resposta, NÃO envia)
-      // ===============================
-      const respostaChatbot = await processarMensagem(from, text)
-      console.log('[CHATBOT][RESPOSTA GERADA]', respostaChatbot)
+      const respostaChatbot = await processarMensagem(from, text);
+      console.log('[CHATBOT][RESPOSTA GERADA]', respostaChatbot);
 
-      console.log('📩 Mensagem WhatsApp recebida:', from)
-      return res.sendStatus(200)
+      return res.sendStatus(200);
     } catch (error) {
-      console.error('❌ Erro webhook WhatsApp:', error)
-      return res.sendStatus(500)
+      console.error('❌ Erro webhook WhatsApp:', error);
+      return res.sendStatus(500);
     }
   }
-}
+};
+
