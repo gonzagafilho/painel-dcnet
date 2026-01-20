@@ -1,65 +1,48 @@
-console.log('🔥 ROTAS AUTH CARREGADAS')
-import express from 'express'
+import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import Admin from '../models/Admin.js'
 import authMiddleware from '../middlewares/authMiddleware.js'
 
-const router = express.Router()
+const router = Router()
 
 // LOGIN
 router.post('/login', async (req, res) => {
-  const { email, senha } = req.body
+  try {
+    const { email, senha } = req.body
 
-  if (!email || !senha) {
-    return res.status(400).json({ message: 'Email e senha são obrigatórios' })
-  }
-
-  const admin = await Admin.findOne({ email })
-
-  if (!admin) {
-    return res.status(401).json({ message: 'Usuário não encontrado' })
-  }
-
-  if (!admin.ativo) {
-    return res.status(403).json({ message: 'Usuário desativado' })
-  }
-
-  if (admin.senha !== senha) {
-    return res.status(401).json({ message: 'Senha inválida' })
-  }
-
-  const token = jwt.sign(
-    { id: admin._id, role: admin.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '8h' }
-  )
-
-  res.json({
-    token,
-    user: {
-      id: admin._id,
-      email: admin.email,
-      nome: admin.nome,
-      role: admin.role
+    if (!email || !senha) {
+      return res.status(400).json({ message: 'Email e senha são obrigatórios' })
     }
-  })
+
+    const admin = await Admin.findOne({ email })
+
+    if (!admin) {
+      return res.status(401).json({ message: 'Usuário não encontrado' })
+    }
+
+    const senhaValida = await admin.comparePassword(senha)
+
+    if (!senhaValida) {
+      return res.status(401).json({ message: 'Senha inválida' })
+    }
+
+    const token = jwt.sign(
+      { id: admin._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    )
+
+    res.json({ token })
+  } catch (error) {
+    console.error('Erro no login:', error)
+    res.status(500).json({ message: 'Erro interno no servidor' })
+  }
 })
 
-// 🔐 ROTA PROTEGIDA
+// ROTA PROTEGIDA (TESTE)
 router.get('/me', authMiddleware, (req, res) => {
-  res.json({
-    id: req.userId,
-    role: req.userRole
-  })
+  res.json({ admin: req.admin })
 })
 
 export default router
-import authMiddleware from '../middlewares/authMiddleware.js'
 
-router.get('/me', authMiddleware, async (req, res) => {
-  res.json({
-    id: req.user.id,
-    email: req.user.email,
-    role: req.user.role,
-  })
-})
