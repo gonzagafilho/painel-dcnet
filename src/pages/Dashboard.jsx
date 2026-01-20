@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from '../services/api'
+import  api  from '../services/api'
 import Card from '../components/Card'
 import DashboardChart from '../components/DashboardChart'
 import DashboardDailyChart from '../components/DashboardDailyChart'

@@ -1,15 +1,17 @@
 import axios from 'axios'
 
-export const api = axios.create({
-  baseURL: 'https://apiservidor.dcinfinity.net.br',
+const api = axios.create({
+  baseURL: 'http://localhost:3100/api'
 })
 
+// interceptor para enviar token automaticamente
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-
   return config
 })
+
+export default api
+
