@@ -22,6 +22,9 @@ app.get('/', (req, res) => {
 // rotas reais da API
 app.use('/api/auth', authRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+import atendimentoRoutes from './routes/atendimento.routes.js'
+
+app.use('/api/atendimentos', atendimentoRoutes)
 
 // porta
 const PORT = process.env.PORT || 3001
