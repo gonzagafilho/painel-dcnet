@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import Card from '../components/Card'
 import DashboardChart from '../components/DashboardChart'
@@ -7,19 +8,35 @@ import DashboardStatusChart from '../components/DashboardStatusChart'
 import DashboardSkeleton from '../components/DashboardSkeleton'
 
 export default function Dashboard() {
+  const navigate = useNavigate()
+
   const [dados, setDados] = useState(null)
   const [graficoDia, setGraficoDia] = useState([])
   const [graficoStatus, setGraficoStatus] = useState([])
-  const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
 
-  // 👉 NOVO: período ativo
+  // 🔹 LOADINGS SEPARADOS
+  const [loadingInicial, setLoadingInicial] = useState(true)
+  const [loadingFiltro, setLoadingFiltro] = useState(false)
+
+  // 🔹 PERÍODO ATIVO
   const [periodoAtivo, setPeriodoAtivo] = useState(7)
 
-  // 👉 FUNÇÃO CENTRAL (NÃO DUPLICAR API)
-  async function carregarDados(dias = periodoAtivo) {
+  // 🔹 LOGOUT
+  function logout() {
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
+
+  // 🔹 FUNÇÃO CENTRAL DE CARGA
+  async function carregarDados(dias = periodoAtivo, inicial = false) {
     try {
-      setLoading(true)
+      if (inicial) {
+        setLoadingInicial(true)
+      } else {
+        setLoadingFiltro(true)
+      }
+
       setErro(null)
 
       // 🔹 RESUMO
@@ -43,28 +60,29 @@ export default function Dashboard() {
       console.error('Erro ao carregar dashboard', err)
       setErro('Erro ao carregar dados do painel')
     } finally {
-      setLoading(false)
+      setLoadingInicial(false)
+      setLoadingFiltro(false)
     }
   }
 
-  // 👉 CARREGA AO ENTRAR NA TELA
+  // 🔹 PRIMEIRA CARGA
   useEffect(() => {
-    carregarDados(periodoAtivo)
+    carregarDados(periodoAtivo, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 👉 TROCA DE PERÍODO (BOTÕES)
+  // 🔹 TROCA DE PERÍODO
   function mudarPeriodo(dias) {
     setPeriodoAtivo(dias)
-    carregarDados(dias)
+    carregarDados(dias, false)
   }
 
-  // 👉 LOADING GLOBAL
-  if (loading) {
+  // 🔹 SKELETON SÓ NA PRIMEIRA VEZ
+  if (loadingInicial) {
     return <DashboardSkeleton />
   }
 
-  // 👉 ERRO
+  // 🔹 ERRO
   if (erro) {
     return (
       <p style={{ color: 'red', padding: '24px' }}>
@@ -75,7 +93,30 @@ export default function Dashboard() {
 
   return (
     <>
-      <h1 style={{ color: '#fff' }}>Painel</h1>
+      {/* 🔝 TOPO COM LOGOUT */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <h1 style={{ color: '#fff' }}>Painel</h1>
+
+        <button
+          onClick={logout}
+          style={{
+            background: '#ef4444',
+            color: '#fff',
+            border: 'none',
+            padding: '8px 14px',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          Sair
+        </button>
+      </div>
 
       {/* 🔘 BOTÕES DE PERÍODO */}
       <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
@@ -98,6 +139,13 @@ export default function Dashboard() {
           </button>
         ))}
       </div>
+
+      {/* 🔄 LOADING SUAVE AO TROCAR FILTRO */}
+      {loadingFiltro && (
+        <p style={{ color: '#9ca3af', marginTop: '10px' }}>
+          Atualizando dados...
+        </p>
+      )}
 
       {/* 🔹 CARDS */}
       <div
