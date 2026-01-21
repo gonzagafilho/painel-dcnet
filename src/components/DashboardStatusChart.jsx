@@ -9,7 +9,10 @@ import {
 const COLORS = ['#22c55e', '#3b82f6', '#f97316', '#ef4444']
 
 export default function DashboardStatusChart({ dados }) {
-  if (!dados || dados.length === 0) return null
+  // 🔒 BLINDAGEM
+  if (!Array.isArray(dados) || dados.length === 0) {
+    return null
+  }
 
   const data = dados.map(item => ({
     name: item._id,
