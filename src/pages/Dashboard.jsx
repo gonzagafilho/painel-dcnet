@@ -4,35 +4,54 @@ import Card from '../components/Card'
 import DashboardChart from '../components/DashboardChart'
 import DashboardDailyChart from '../components/DashboardDailyChart'
 import DashboardStatusChart from '../components/DashboardStatusChart'
+import DashboardSkeleton from '../components/DashboardSkeleton'
 
 export default function Dashboard() {
   const [dados, setDados] = useState(null)
   const [graficoDia, setGraficoDia] = useState([])
+  const [graficoStatus, setGraficoStatus] = useState([])
   const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState(null)
 
   useEffect(() => {
     async function carregarDados() {
-  try {
-    const resumoResponse = await api.get('/dashboard/resumo')
-    setDados(resumoResponse.data)
+      try {
+        // 🔹 RESUMO
+        const resumoResponse = await api.get('/dashboard/resumo')
+        setDados(resumoResponse.data)
 
-    const graficoResponse = await api.get('/dashboard/atendimentos-dia')
-    setGraficoDia(graficoResponse.data)
+        // 🔹 GRÁFICO DIÁRIO
+        const graficoResponse = await api.get(
+          '/dashboard/atendimentos-dia'
+        )
+        setGraficoDia(graficoResponse.data)
 
-    const statusResponse = await api.get('/dashboard/atendimentos-status')
-    setGraficoStatus(statusResponse.data)
-  } catch (err) {
-    console.error('Erro ao carregar dashboard', err)
-  } finally {
-    setLoading(false)
-  }
-}
+        // 🔹 GRÁFICO POR STATUS
+        const statusResponse = await api.get(
+          '/dashboard/atendimentos-status'
+        )
+        setGraficoStatus(statusResponse.data)
+      } catch (err) {
+        console.error('Erro ao carregar dashboard', err)
+        setErro('Erro ao carregar dados do painel')
+      } finally {
+        setLoading(false)
+      }
+    }
 
     carregarDados()
   }, [])
 
   if (loading) {
-    return <p style={{ color: '#fff' }}>Carregando dados...</p>
+    return <DashboardSkeleton />
+  }
+
+  if (erro) {
+    return (
+      <p style={{ color: 'red', padding: '24px' }}>
+        {erro}
+      </p>
+    )
   }
 
   return (
@@ -82,10 +101,9 @@ export default function Dashboard() {
 
       {/* GRÁFICO DIÁRIO */}
       <DashboardDailyChart dados={graficoDia} />
-      
-      {/* GRÁFICO POR STATUS */}
-       <DashboardStatusChart dados={graficoStatus} />
 
+      {/* GRÁFICO POR STATUS */}
+      <DashboardStatusChart dados={graficoStatus} />
     </>
   )
 }
