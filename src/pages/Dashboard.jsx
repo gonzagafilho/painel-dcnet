@@ -28,6 +28,14 @@ export default function Dashboard() {
     navigate('/login')
   }
 
+  // 🔒 PROTEÇÃO DE ROTA (EVITA 401)
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      navigate('/login')
+    }
+  }, [navigate])
+
   // 🔹 FUNÇÃO CENTRAL DE CARGA
   async function carregarDados(dias = periodoAtivo, inicial = false) {
     try {
@@ -39,19 +47,16 @@ export default function Dashboard() {
 
       setErro(null)
 
-      // 🔹 RESUMO
       const resumoResponse = await api.get(
         `/dashboard/resumo?dias=${dias}`
       )
       setDados(resumoResponse.data)
 
-      // 🔹 GRÁFICO DIÁRIO
       const graficoResponse = await api.get(
         `/dashboard/atendimentos-dia?dias=${dias}`
       )
       setGraficoDia(graficoResponse.data)
 
-      // 🔹 GRÁFICO POR STATUS
       const statusResponse = await api.get(
         `/dashboard/atendimentos-status?dias=${dias}`
       )
@@ -65,9 +70,12 @@ export default function Dashboard() {
     }
   }
 
-  // 🔹 PRIMEIRA CARGA
+  // 🔹 PRIMEIRA CARGA (SÓ SE TIVER TOKEN)
   useEffect(() => {
-    carregarDados(periodoAtivo, true)
+    const token = localStorage.getItem('token')
+    if (token) {
+      carregarDados(periodoAtivo, true)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -92,26 +100,31 @@ export default function Dashboard() {
   }
 
   return (
-    <>
-      {/* 🔝 TOPO COM LOGOUT */}
+    <div style={{ width: '100%' }}>
+      {/* 🔝 HEADER COM LOGOUT */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          width: '100%',
+          paddingBottom: '16px',
+          marginBottom: '20px',
+          borderBottom: '1px solid #374151'
         }}
       >
-        <h1 style={{ color: '#fff' }}>Painel</h1>
+        <h1 style={{ color: '#fff', margin: 0 }}>Painel</h1>
 
         <button
           onClick={logout}
           style={{
-            background: '#ef4444',
+            background: '#dc2626',
             color: '#fff',
             border: 'none',
-            padding: '8px 14px',
+            padding: '8px 16px',
             borderRadius: '6px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontWeight: 'bold'
           }}
         >
           Sair
@@ -119,7 +132,7 @@ export default function Dashboard() {
       </div>
 
       {/* 🔘 BOTÕES DE PERÍODO */}
-      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
         {[1, 7, 15, 30].map((dias) => (
           <button
             key={dias}
@@ -140,7 +153,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* 🔄 LOADING SUAVE AO TROCAR FILTRO */}
+      {/* 🔄 LOADING SUAVE */}
       {loadingFiltro && (
         <p style={{ color: '#9ca3af', marginTop: '10px' }}>
           Atualizando dados...
@@ -156,39 +169,16 @@ export default function Dashboard() {
           marginTop: '20px'
         }}
       >
-        <Card
-          titulo="Clientes"
-          valor={dados?.clientes ?? '--'}
-          cor="#3b82f6"
-          icone="👥"
-        />
-
-        <Card
-          titulo="Atendimentos"
-          valor={dados?.atendimentos ?? '--'}
-          cor="#22c55e"
-          icone="📞"
-        />
-
-        <Card
-          titulo="Chatbot"
-          valor={dados?.chatbot ?? '--'}
-          cor="#a855f7"
-          icone="🤖"
-        />
-
-        <Card
-          titulo="Servidor"
-          valor={dados?.servidor ?? '--'}
-          cor="#f97316"
-          icone="🖥️"
-        />
+        <Card titulo="Clientes" valor={dados?.clientes ?? '--'} cor="#3b82f6" icone="👥" />
+        <Card titulo="Atendimentos" valor={dados?.atendimentos ?? '--'} cor="#22c55e" icone="📞" />
+        <Card titulo="Chatbot" valor={dados?.chatbot ?? '--'} cor="#a855f7" icone="🤖" />
+        <Card titulo="Servidor" valor={dados?.servidor ?? '--'} cor="#f97316" icone="🖥️" />
       </div>
 
       {/* 🔹 GRÁFICOS */}
       <DashboardChart dados={dados} />
       <DashboardDailyChart dados={graficoDia} />
       <DashboardStatusChart dados={graficoStatus} />
-    </>
+    </div>
   )
 }
