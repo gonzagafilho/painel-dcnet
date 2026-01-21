@@ -11,37 +11,46 @@ export default {
     })
   },
 
-  // ✅ GRÁFICO DIÁRIO (PASSO C)
+  // ✅ GRÁFICO DIÁRIO
   async atendimentosPorDia(req, res) {
     try {
-      const dados = await Atendimento.aggregate([
+      const resultado = await Atendimento.aggregate([
         {
           $group: {
             _id: {
-              $dateToString: {
-                format: '%Y-%m-%d',
-                date: '$createdAt'
+              dia: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$createdAt"
+                }
               }
             },
             total: { $sum: 1 }
           }
         },
-        { $sort: { _id: 1 } }
+        {
+          $sort: { "_id.dia": 1 }
+        },
+        {
+          $project: {
+            _id: 0,
+            dia: "$_id.dia",
+            total: 1
+          }
+        }
       ])
 
-      res.json(
-        dados.map(item => ({
-          data: item._id,
-          total: item.total
-        }))
-      )
-    } catch (error) {
-      console.error('Erro dashboard diário:', error)
-      res.status(500).json({ erro: 'Erro ao gerar dados do gráfico' })
-    }
-  },
+      // ✅ SEMPRE ARRAY
+      res.json(Array.isArray(resultado) ? resultado : [])
 
-  // 🆕 GRÁFICO DE STATUS (PASSO D)
+    } catch (error) {
+      console.error('Erro atendimentosPorDia:', error)
+      res.status(500).json([])
+    }
+  }, // ⬅️ ESSA VÍRGULA É O PULO DO GATO 🐱
+
+
+  // 🆕 GRÁFICO DE STATUS
   async atendimentosStatus(req, res) {
     try {
       const resultado = await Atendimento.aggregate([

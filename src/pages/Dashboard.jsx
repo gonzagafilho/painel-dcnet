@@ -1,42 +1,57 @@
 import { useEffect, useState } from 'react'
-import  api  from '../services/api'
+import api from '../services/api'
 import Card from '../components/Card'
 import DashboardChart from '../components/DashboardChart'
 import DashboardDailyChart from '../components/DashboardDailyChart'
+import DashboardStatusChart from '../components/DashboardStatusChart'
+import DashboardSkeleton from '../components/DashboardSkeleton'
 
 export default function Dashboard() {
   const [dados, setDados] = useState(null)
   const [graficoDia, setGraficoDia] = useState([])
+  const [graficoStatus, setGraficoStatus] = useState([])
   const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState(null)
 
   useEffect(() => {
-    // RESUMO
-    api
-      .get('/api/dashboard/resumo')
-      .then(res => {
-        console.log('DADOS API:', res.data)
-        setDados(res.data)
-      })
-      .catch(err => {
-        console.error('Erro ao carregar resumo', err)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+    async function carregarDados() {
+      try {
+        // 🔹 RESUMO
+        const resumoResponse = await api.get('/dashboard/resumo')
+        setDados(resumoResponse.data)
 
-    // GRÁFICO DIÁRIO
-    api
-      .get('/api/dashboard/atendimentos-dia')
-      .then(res => {
-        setGraficoDia(res.data)
-      })
-      .catch(err => {
-        console.error('Erro gráfico diário', err)
-      })
+        // 🔹 GRÁFICO DIÁRIO
+        const graficoResponse = await api.get(
+          '/dashboard/atendimentos-dia'
+        )
+        setGraficoDia(graficoResponse.data)
+
+        // 🔹 GRÁFICO POR STATUS
+        const statusResponse = await api.get(
+          '/dashboard/atendimentos-status'
+        )
+        setGraficoStatus(statusResponse.data)
+      } catch (err) {
+        console.error('Erro ao carregar dashboard', err)
+        setErro('Erro ao carregar dados do painel')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    carregarDados()
   }, [])
 
   if (loading) {
-    return <p style={{ color: '#fff' }}>Carregando dados...</p>
+    return <DashboardSkeleton />
+  }
+
+  if (erro) {
+    return (
+      <p style={{ color: 'red', padding: '24px' }}>
+        {erro}
+      </p>
+    )
   }
 
   return (
@@ -84,8 +99,11 @@ export default function Dashboard() {
       {/* GRÁFICO GERAL */}
       <DashboardChart dados={dados} />
 
-      {/* GRÁFICO DIÁRIO (MONGODB) */}
+      {/* GRÁFICO DIÁRIO */}
       <DashboardDailyChart dados={graficoDia} />
+
+      {/* GRÁFICO POR STATUS */}
+      <DashboardStatusChart dados={graficoStatus} />
     </>
   )
 }

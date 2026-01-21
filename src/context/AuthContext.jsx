@@ -9,10 +9,10 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    const userSalvo = localStorage.getItem('user')
+    const adminSalvo = localStorage.getItem('admin')
 
-    if (token && userSalvo) {
-      setUser(JSON.parse(userSalvo))
+    if (token && adminSalvo) {
+      setUser(JSON.parse(adminSalvo))
     }
 
     setLoading(false)
@@ -24,22 +24,30 @@ export function AuthProvider({ children }) {
       senha
     })
 
-    const { token, user } = response.data
+    const { token, admin } = response.data
 
     localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('admin', JSON.stringify(admin))
 
-    setUser(user)
+    setUser(admin)
   }
 
   function logout() {
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    localStorage.removeItem('admin')
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        logout,
+        loading
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -48,3 +56,4 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext)
 }
+
