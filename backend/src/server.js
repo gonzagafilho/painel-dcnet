@@ -3,23 +3,24 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 
-import authRoutes from './routes/auth.js'
+// rotas
+import authRoutes from './routes/auth.routes.js'
 import dashboardRoutes from './routes/dashboard.routes.js'
 import atendimentoRoutes from './routes/atendimento.routes.js'
 import whatsappRoutes from './routes/whatsapp.routes.js'
 
-dotenv.config()
+// conexão Mongo (Mongoose)
+import { connectMongo } from './database/mongoose.js'
 
-// 🔒 impedir buffer antes da conexão
-mongoose.set('bufferCommands', false)
+dotenv.config()
 
 const app = express()
 
-// middlewares globais
+// middlewares
 app.use(cors())
 app.use(express.json())
 
-// rota de teste
+// rota teste
 app.get('/', (req, res) => {
   res.json({ status: 'API DC NET ONLINE' })
 })
@@ -30,20 +31,18 @@ app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/atendimentos', atendimentoRoutes)
 app.use('/api', whatsappRoutes)
 
-const PORT = process.env.PORT || 3100
+const PORT = process.env.PORT || 3001
 
 async function startServer() {
   try {
-    await mongoose.connect(process.env.MONGO_URI)
-    await mongoose.connection.asPromise()
-
-    console.log('MongoDB conectado ✅')
+    // 🔥 ÚNICA conexão com MongoDB (OFICIAL)
+    await connectMongo()
 
     app.listen(PORT, () => {
       console.log(`🚀 API DC NET rodando na porta ${PORT}`)
     })
   } catch (error) {
-    console.error('❌ Erro ao conectar no MongoDB:', error)
+    console.error('❌ Erro ao iniciar servidor:', error)
     process.exit(1)
   }
 }
