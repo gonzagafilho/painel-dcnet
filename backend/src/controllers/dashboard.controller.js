@@ -11,87 +11,82 @@ export default {
     })
   },
 
-  // ✅ GRÁFICO DIÁRIO
+  // ✅ GRÁFICO DIÁRIO COM FILTRO POR PERÍODO
   async atendimentosPorDia(req, res) {
-  try {
-    const dias = parseInt(req.query.dias || '7', 10)
+    try {
+      const dias = parseInt(req.query.dias || '7', 10)
 
-    const dataInicial = new Date()
-    dataInicial.setDate(dataInicial.getDate() - dias)
+      const dataInicial = new Date()
+      dataInicial.setDate(dataInicial.getDate() - dias)
 
-    const resultado = await Atendimento.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: dataInicial }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            dia: {
-              $dateToString: {
-                format: "%Y-%m-%d",
-                date: "$createdAt"
+      const resultado = await Atendimento.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: dataInicial }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              dia: {
+                $dateToString: {
+                  format: '%Y-%m-%d',
+                  date: '$createdAt'
+                }
               }
-            }
-          },
-          total: { $sum: 1 }
+            },
+            total: { $sum: 1 }
+          }
+        },
+        { $sort: { '_id.dia': 1 } },
+        {
+          $project: {
+            _id: 0,
+            dia: '$_id.dia',
+            total: 1
+          }
         }
-      },
-      { $sort: { "_id.dia": 1 } },
-      {
-        $project: {
-          _id: 0,
-          dia: "$_id.dia",
-          total: 1
-        }
-      }
-    ])
-
-    res.json(Array.isArray(resultado) ? resultado : [])
-  } catch (error) {
-    console.error('Erro atendimentosPorDia:', error)
-    res.status(500).json([])
-  }
-}
       ])
 
-      // ✅ SEMPRE ARRAY
       res.json(Array.isArray(resultado) ? resultado : [])
-
     } catch (error) {
       console.error('Erro atendimentosPorDia:', error)
       res.status(500).json([])
     }
-  }, // ⬅️ ESSA VÍRGULA É O PULO DO GATO 🐱
+  },
 
-
-  // 🆕 GRÁFICO DE STATUS
+  // 🆕 GRÁFICO DE STATUS COM FILTRO POR PERÍODO
   async atendimentosStatus(req, res) {
-  try {
-    const dias = parseInt(req.query.dias || '7', 10)
-    const dataInicial = new Date()
-    dataInicial.setDate(dataInicial.getDate() - dias)
+    try {
+      const dias = parseInt(req.query.dias || '7', 10)
 
-    const resultado = await Atendimento.aggregate([
-      { $match: { createdAt: { $gte: dataInicial } } },
-      {
-        $group: {
-          _id: '$status',
-          total: { $sum: 1 }
+      const dataInicial = new Date()
+      dataInicial.setDate(dataInicial.getDate() - dias)
+
+      const resultado = await Atendimento.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: dataInicial }
+          }
+        },
+        {
+          $group: {
+            _id: '$status',
+            total: { $sum: 1 }
+          }
         }
-      }
-    ])
+      ])
 
-    const resposta = {}
-    resultado.forEach(item => {
-      resposta[item._id] = item.total
-    })
+      const resposta = {}
+      resultado.forEach(item => {
+        resposta[item._id] = item.total
+      })
 
-    res.json(resposta)
-  } catch (error) {
-    console.error('Erro dashboard status:', error)
-    res.status(500).json({})
+      res.json(resposta)
+    } catch (error) {
+      console.error('Erro atendimentosStatus:', error)
+      res.status(500).json({})
+    }
   }
 }
 

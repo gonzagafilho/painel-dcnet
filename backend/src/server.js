@@ -31,7 +31,7 @@ app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/atendimentos', atendimentoRoutes)
 app.use('/api', whatsappRoutes)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3100
 
 async function startServer() {
   try {
