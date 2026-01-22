@@ -1,10 +1,10 @@
+
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://apiservidor.dcinfinity.net.br/api'
+  baseURL: import.meta.env.VITE_API_URL
 })
 
-// 🔐 interceptor para enviar token automaticamente
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -13,10 +13,7 @@ api.interceptors.request.use(
     }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
 export default api
-
