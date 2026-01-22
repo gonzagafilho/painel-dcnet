@@ -6,7 +6,7 @@ import { enviarEmail } from './email.service.js'
 
 export function iniciarRelatorioAutomatico() {
   // ⏰ TODO DIA ÀS 08:00
-  cron.schedule('0 8 * * *', async () => {
+  cron.schedule('0 8 * * * *', async () => {
     try {
       console.log('⏰ Gerando relatório automático...')
 

@@ -5,11 +5,10 @@ import {
 } from '../controllers/relatorios.controller.js'
 import authMiddleware from '../middlewares/auth.middleware.js'
 
-const relatoriosRoutes = Router()
+const router = Router()
 
-relatoriosRoutes.get('/relatorios', authMiddleware, listarRelatorios)
-relatoriosRoutes.post('/relatorios/email', authMiddleware, enviarRelatorioPorEmail)
+router.get('/relatorios', authMiddleware, listarRelatorios)
+router.post('/relatorios/email', authMiddleware, enviarRelatorioPorEmail)
 
-export { relatoriosRoutes }
-
+export default router
 

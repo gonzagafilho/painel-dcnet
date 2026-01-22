@@ -1,21 +1,21 @@
+import dotenv from 'dotenv'
+dotenv.config() // ⬅️ SEMPRE PRIMEIRO
+
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 
 // rotas
 import authRoutes from './routes/auth.routes.js'
 import dashboardRoutes from './routes/dashboard.routes.js'
 import atendimentoRoutes from './routes/atendimento.routes.js'
 import whatsappRoutes from './routes/whatsapp.routes.js'
-import { relatoriosRoutes } from './routes/relatorios.routes.js'
+import relatoriosRoutes from './routes/relatorios.routes.js'
 
 // ⏰ CRON
-import { iniciarRelatorioAutomatico } from './services/relatorio.cron.js' 
+import { iniciarRelatorioAutomatico } from './services/relatorio.cron.js'
 
 // conexão Mongo
 import { connectMongo } from './database/mongoose.js'
-
-dotenv.config()
 
 const app = express()
 
@@ -35,16 +35,16 @@ app.use('/api/atendimentos', atendimentoRoutes)
 app.use('/api', whatsappRoutes)
 app.use('/api', relatoriosRoutes)
 
-const PORT = process.env.PORT || 3100
+const PORT = process.env.PORT || 3001
 
 async function startServer() {
   try {
-    // conexão única com MongoDB
+    // 🟢 conexão Mongo
     await connectMongo()
 
-    // ⏰ inicia relatório automático
+    // ⏰ inicia relatório automático por e-mail
     iniciarRelatorioAutomatico()
-    
+
     app.listen(PORT, () => {
       console.log(`🚀 API DC NET rodando na porta ${PORT}`)
     })
@@ -55,3 +55,4 @@ async function startServer() {
 }
 
 startServer()
+
