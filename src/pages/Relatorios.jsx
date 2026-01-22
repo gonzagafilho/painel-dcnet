@@ -31,6 +31,40 @@ export default function Relatorios() {
     }
   }
 
+  // 🔽 EXPORTAÇÃO CSV
+  function exportarCSV() {
+    if (!dados || dados.length === 0) {
+      alert('Não há dados para exportar')
+      return
+    }
+
+    const headers = ['Cliente', 'Status', 'Data']
+
+    const rows = dados.map(item => [
+      item.cliente || '',
+      item.status || '',
+      new Date(item.createdAt).toLocaleDateString()
+    ])
+
+    const csvContent =
+      headers.join(';') +
+      '\n' +
+      rows.map(row => row.join(';')).join('\n')
+
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;'
+    })
+
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `relatorios_${Date.now()}.csv`
+    link.click()
+
+    URL.revokeObjectURL(url)
+  }
+
   useEffect(() => {
     buscarRelatorios()
   }, [])
@@ -62,6 +96,10 @@ export default function Relatorios() {
 
         <button onClick={buscarRelatorios}>
           Filtrar
+        </button>
+
+        <button onClick={exportarCSV}>
+          Exportar CSV
         </button>
       </div>
 
