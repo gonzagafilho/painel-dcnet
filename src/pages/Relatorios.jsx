@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export default function Relatorios() {
   const [dados, setDados] = useState([])
@@ -33,7 +35,7 @@ export default function Relatorios() {
 
   // 🔽 EXPORTAÇÃO CSV
   function exportarCSV() {
-    if (!dados || dados.length === 0) {
+    if (!dados.length) {
       alert('Não há dados para exportar')
       return
     }
@@ -46,15 +48,12 @@ export default function Relatorios() {
       new Date(item.createdAt).toLocaleDateString()
     ])
 
-    const csvContent =
+    const csv =
       headers.join(';') +
       '\n' +
       rows.map(row => row.join(';')).join('\n')
 
-    const blob = new Blob([csvContent], {
-      type: 'text/csv;charset=utf-8;'
-    })
-
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
 
     const link = document.createElement('a')
@@ -63,6 +62,34 @@ export default function Relatorios() {
     link.click()
 
     URL.revokeObjectURL(url)
+  }
+
+  // 🔽 EXPORTAÇÃO PDF
+  function exportarPDF() {
+    if (!dados.length) {
+      alert('Não há dados para exportar')
+      return
+    }
+
+    const doc = new jsPDF()
+
+    doc.setFontSize(16)
+    doc.text('Relatório de Atendimentos', 14, 15)
+
+    doc.setFontSize(10)
+    doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 22)
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['Cliente', 'Status', 'Data']],
+      body: dados.map(item => [
+        item.cliente || '',
+        item.status || '',
+        new Date(item.createdAt).toLocaleDateString()
+      ])
+    })
+
+    doc.save(`relatorios_${Date.now()}.pdf`)
   }
 
   useEffect(() => {
@@ -94,13 +121,9 @@ export default function Relatorios() {
           <option value="cancelado">Cancelado</option>
         </select>
 
-        <button onClick={buscarRelatorios}>
-          Filtrar
-        </button>
-
-        <button onClick={exportarCSV}>
-          Exportar CSV
-        </button>
+        <button onClick={buscarRelatorios}>Filtrar</button>
+        <button onClick={exportarCSV}>Exportar CSV</button>
+        <button onClick={exportarPDF}>Exportar PDF</button>
       </div>
 
       {/* TABELA */}
