@@ -64,7 +64,7 @@ export default function Relatorios() {
     URL.revokeObjectURL(url)
   }
 
-  // 🔽 EXPORTAÇÃO PDF
+  // 🔽 EXPORTAÇÃO PDF (LOCAL)
   function exportarPDF() {
     if (!dados.length) {
       alert('Não há dados para exportar')
@@ -90,6 +90,23 @@ export default function Relatorios() {
     })
 
     doc.save(`relatorios_${Date.now()}.pdf`)
+  }
+
+  // 📧 ENVIAR PDF POR E-MAIL (BACKEND)
+  async function enviarPorEmail() {
+    try {
+      if (!dados.length) {
+        alert('Não há dados para enviar')
+        return
+      }
+
+      await api.post('/relatorios/email', dados)
+
+      alert('Relatório enviado por e-mail com sucesso!')
+    } catch (error) {
+      console.error(error)
+      alert('Erro ao enviar relatório por e-mail')
+    }
   }
 
   useEffect(() => {
@@ -153,6 +170,10 @@ export default function Relatorios() {
 
           <button onClick={exportarPDF} style={btnSecondary}>
             PDF
+          </button>
+
+          <button onClick={enviarPorEmail} style={btnSecondary}>
+            Enviar por E-mail
           </button>
         </div>
 
