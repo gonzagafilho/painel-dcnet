@@ -1,8 +1,21 @@
+import { useNavigate } from 'react-router-dom'
+
 export default function Sidebar() {
+  const navigate = useNavigate()
+
   function logout() {
     localStorage.removeItem('token')
     window.location.href = '/login'
   }
+
+  const menuItems = [
+    { label: 'Dashboard', path: '/' },
+    { label: 'Clientes', path: '/clientes' },
+    { label: 'Atendimentos', path: '/atendimentos' },
+    { label: 'Chatbot', path: '/chatbot' },
+    { label: 'Relatórios', path: '/relatorios' },
+    { label: 'Configurações', path: '/configuracoes' }
+  ]
 
   return (
     <aside
@@ -18,28 +31,22 @@ export default function Sidebar() {
       <h2 style={{ color: 'var(--primary)' }}>DC NET</h2>
 
       <nav style={{ marginTop: '40px', flexGrow: 1 }}>
-        {[
-          'Dashboard',
-          'Clientes',
-          'Atendimentos',
-          'Chatbot',
-          'Relatórios',
-          'Configurações'
-        ].map((item) => (
+        {menuItems.map((item) => (
           <div
-            key={item}
+            key={item.path}
+            onClick={() => navigate(item.path)}
             style={{
               padding: '10px',
               color: 'var(--muted)',
               cursor: 'pointer'
             }}
           >
-            {item}
+            {item.label}
           </div>
         ))}
       </nav>
 
-      {/* 🔻 BOTÃO SAIR (SEMPRE VISÍVEL) */}
+      {/* 🔻 BOTÃO SAIR */}
       <button
         onClick={logout}
         style={{

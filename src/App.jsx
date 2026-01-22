@@ -14,6 +14,8 @@ import Chatbot from './pages/Chatbot'
 import Clientes from './pages/Clientes'
 import Atendimentos from './pages/Atendimentos'
 import Configuracoes from './pages/Configuracoes'
+import Relatorios from './pages/Relatorios' // 👈 NOVO
+
 export default function App() {
   const [menuAberto, setMenuAberto] = useState(false)
   const { logout } = useAuth()
@@ -61,6 +63,7 @@ export default function App() {
                     <Route path="chatbot" element={<Chatbot />} />
                     <Route path="clientes" element={<Clientes />} />
                     <Route path="atendimentos" element={<Atendimentos />} />
+                    <Route path="relatorios" element={<Relatorios />} /> {/* 👈 NOVO */}
                     <Route path="configuracoes" element={<Configuracoes />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
