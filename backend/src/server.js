@@ -9,6 +9,9 @@ import atendimentoRoutes from './routes/atendimento.routes.js'
 import whatsappRoutes from './routes/whatsapp.routes.js'
 import { relatoriosRoutes } from './routes/relatorios.routes.js'
 
+// ⏰ CRON
+import { iniciarRelatorioAutomatico } from './services/relatorio.cron.js' 
+
 // conexão Mongo
 import { connectMongo } from './database/mongoose.js'
 
@@ -39,6 +42,9 @@ async function startServer() {
     // conexão única com MongoDB
     await connectMongo()
 
+    // ⏰ inicia relatório automático
+    iniciarRelatorioAutomatico()
+    
     app.listen(PORT, () => {
       console.log(`🚀 API DC NET rodando na porta ${PORT}`)
     })
