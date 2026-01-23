@@ -6,6 +6,7 @@ import { execSync } from 'child_process'
  */
 
 export function validarCommit() {
+  console.log("teste do commit guard")
   console.log('🔒 Commit Guard ativo...')
 
   // Arquivos proibidos
