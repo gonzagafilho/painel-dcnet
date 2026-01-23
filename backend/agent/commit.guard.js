@@ -6,7 +6,6 @@ import { execSync } from 'child_process'
  */
 
 export function validarCommit() {
-  console.log("teste do commit guard")
   console.log('🔒 Commit Guard ativo...')
 
   // Arquivos proibidos
@@ -21,6 +20,7 @@ export function validarCommit() {
     .split('\n')
     .filter(Boolean)
 
+  // Verifica arquivos proibidos
   for (const file of staged) {
     if (arquivosProibidos.some(p => file.includes(p))) {
       console.error(`❌ Commit bloqueado: arquivo proibido -> ${file}`)
@@ -28,15 +28,18 @@ export function validarCommit() {
     }
   }
 
-  console.log('✅ Arquivos permitidos')
+  // Verifica console.log (IGNORANDO o próprio Commit Guard)
+  for (const file of staged) {
+    if (file.includes('backend/agent/commit.guard.js')) continue
 
-  // Verifica console.log (básico)
-  const diff = execSync('git diff --cached').toString()
-  if (diff.includes('console.log(')) {
-    console.error('❌ Commit bloqueado: console.log encontrado')
-    process.exit(1)
+    const diff = execSync(`git diff --cached ${file}`).toString()
+    if (diff.includes('console.log(')) {
+      console.error(`❌ Commit bloqueado: console.log encontrado em ${file}`)
+      process.exit(1)
+    }
   }
 
+  console.log('✅ Arquivos permitidos')
   console.log('✅ Commit liberado')
 }
 

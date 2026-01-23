@@ -9,7 +9,6 @@ import { enviarEmail } from '../services/email.service.js'
 async function listarRelatorios(req, res) {
   try {
     const { inicio, fim, status } = req.query
-    
     const filtro = {}
 
     if (inicio && fim) {
