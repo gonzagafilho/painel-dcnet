@@ -11,7 +11,7 @@ import atendimentoRoutes from './routes/atendimento.routes.js'
 import whatsappRoutes from './routes/whatsapp.routes.js'
 import relatoriosRoutes from './routes/relatorios.routes.js'
 import healthRoutes from './routes/health.routes.js'
-
+import statusRoutes from './routes/status.routes.js'
 // ⏰ CRON
 import { iniciarRelatorioAutomatico } from './services/relatorio.cron.js'
 
@@ -36,6 +36,7 @@ app.use('/api/atendimentos', atendimentoRoutes)
 app.use('/api', whatsappRoutes)
 app.use('/api', relatoriosRoutes)
 app.use('/api', healthRoutes)
+app.use('/api', statusRoutes)
 
 const PORT = process.env.PORT || 3001
 
