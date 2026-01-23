@@ -34,16 +34,6 @@ export function validarCommit() {
     // ignora o próprio Commit Guard
     if (file.includes('backend/agent/commit.guard.js')) continue
 
-    // 🔍 Conteúdo completo do arquivo
-    const content = execSync(`git show :${file}`).toString()
-
-    // ❌ Bloqueia debugger (GLOBAL)
-    if (content.includes('debugger')) {
-      console.error(`❌ Commit bloqueado: debugger encontrado em ${file}`)
-      process.exit(1)
-    }
-
-    // 🔍 Diff (apenas linhas adicionadas)
     const diff = execSync(`git diff --cached ${file}`)
       .toString()
       .split('\n')
@@ -53,6 +43,12 @@ export function validarCommit() {
     // ❌ Bloqueia console.log
     if (diff.includes('console.log(')) {
       console.error(`❌ Commit bloqueado: console.log encontrado em ${file}`)
+      process.exit(1)
+    }
+
+    // ❌ Bloqueia debugger (REGEX CORRETA)
+    if (/\bdebugger\b/.test(diff)) {
+      console.error(`❌ Commit bloqueado: debugger encontrado em ${file}`)
       process.exit(1)
     }
 
