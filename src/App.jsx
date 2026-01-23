@@ -14,7 +14,8 @@ import Chatbot from './pages/Chatbot'
 import Clientes from './pages/Clientes'
 import Atendimentos from './pages/Atendimentos'
 import Configuracoes from './pages/Configuracoes'
-import Relatorios from './pages/Relatorios' // 👈 NOVO
+import Relatorios from './pages/Relatorios'
+import Status from './pages/Status'
 
 export default function App() {
   const [menuAberto, setMenuAberto] = useState(false)
@@ -36,7 +37,7 @@ export default function App() {
                 display: 'flex',
                 minHeight: '100vh',
                 background: 'var(--bg-dark)',
-                color: 'var(--text)'
+                color: 'var(--text)',
               }}
             >
               <Sidebar />
@@ -54,7 +55,7 @@ export default function App() {
                   style={{
                     padding: '24px',
                     background: 'var(--bg-dark)',
-                    minHeight: 'calc(100vh - 60px)'
+                    minHeight: 'calc(100vh - 60px)',
                   }}
                 >
                   <Routes>
@@ -63,7 +64,8 @@ export default function App() {
                     <Route path="chatbot" element={<Chatbot />} />
                     <Route path="clientes" element={<Clientes />} />
                     <Route path="atendimentos" element={<Atendimentos />} />
-                    <Route path="relatorios" element={<Relatorios />} /> {/* 👈 NOVO */}
+                    <Route path="relatorios" element={<Relatorios />} />
+                    <Route path="status" element={<Status />} />
                     <Route path="configuracoes" element={<Configuracoes />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>

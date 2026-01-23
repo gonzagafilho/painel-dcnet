@@ -1,12 +1,9 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function Sidebar() {
   const navigate = useNavigate()
-
-  function logout() {
-    localStorage.removeItem('token')
-    window.location.href = '/login'
-  }
+  const { logout } = useAuth()
 
   const menuItems = [
     { label: 'Dashboard', path: '/' },
@@ -14,6 +11,7 @@ export default function Sidebar() {
     { label: 'Atendimentos', path: '/atendimentos' },
     { label: 'Chatbot', path: '/chatbot' },
     { label: 'Relatórios', path: '/relatorios' },
+    { label: 'Status do Servidor', path: '/status' }, // ✅ NOVO
     { label: 'Configurações', path: '/configuracoes' }
   ]
 
@@ -48,7 +46,10 @@ export default function Sidebar() {
 
       {/* 🔻 BOTÃO SAIR */}
       <button
-        onClick={logout}
+        onClick={() => {
+          logout()
+          navigate('/login')
+        }}
         style={{
           background: 'transparent',
           border: 'none',
@@ -64,4 +65,3 @@ export default function Sidebar() {
     </aside>
   )
 }
-

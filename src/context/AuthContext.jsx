@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import api from '../services/api'
 
 const AuthContext = createContext()
 
@@ -12,10 +13,18 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  function login(adminData, token) {
-    localStorage.setItem('admin', JSON.stringify(adminData))
-    localStorage.setItem('token', token)
-    setAdmin(adminData)
+  // ✅ LOGIN REAL COM API
+  async function login(email, senha) {
+    const res = await api.post('/auth/login', {
+      email,
+      senha
+    })
+
+    // JWT REAL
+    localStorage.setItem('token', res.data.token)
+    localStorage.setItem('admin', JSON.stringify({ email }))
+
+    setAdmin({ email })
   }
 
   function logout() {
