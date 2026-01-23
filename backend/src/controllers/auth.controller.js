@@ -8,7 +8,6 @@ import Admin from '../models/Admin.js'
 export async function login(req, res) {
   try {
     const { email, senha } = req.body
-
     if (!email || !senha) {
       return res.status(400).json({
         message: 'E-mail e senha obrigatórios'
@@ -70,8 +69,7 @@ export async function login(req, res) {
 export async function resetPassword(req, res) {
   try {
     const { email, novaSenha } = req.body
-    console.log("teste husky")
-    if (!email || !novaSenha) {
+      if (!email || !novaSenha) {
       return res.status(400).json({
         message: 'Email e novaSenha são obrigatórios'
       })

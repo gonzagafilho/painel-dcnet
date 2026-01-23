@@ -8,19 +8,20 @@ import { execSync } from 'child_process'
 export function validarCommit() {
   console.log('🔒 Commit Guard ativo...')
 
-  // Arquivos proibidos
+  // ❌ Arquivos proibidos
   const arquivosProibidos = [
     '.env',
     '.env.production',
     'relatorio-atendimentos.pdf'
   ]
 
+  // 📂 Arquivos no stage
   const staged = execSync('git diff --cached --name-only')
     .toString()
     .split('\n')
     .filter(Boolean)
 
-  // Verifica arquivos proibidos
+  // 🔒 Verifica arquivos proibidos
   for (const file of staged) {
     if (arquivosProibidos.some(p => file.includes(p))) {
       console.error(`❌ Commit bloqueado: arquivo proibido -> ${file}`)
@@ -28,13 +29,37 @@ export function validarCommit() {
     }
   }
 
-  // Verifica console.log (IGNORANDO o próprio Commit Guard)
+  // 🔒 Verificações de código
   for (const file of staged) {
+    // ignora o próprio Commit Guard
     if (file.includes('backend/agent/commit.guard.js')) continue
 
-    const diff = execSync(`git diff --cached ${file}`).toString()
+    const diff = execSync(`git diff --cached ${file}`)
+      .toString()
+      .split('\n')
+      .filter(line => line.startsWith('+') && !line.startsWith('+++'))
+      .join('\n')
+
+    // ❌ Bloqueia console.log
     if (diff.includes('console.log(')) {
       console.error(`❌ Commit bloqueado: console.log encontrado em ${file}`)
+      process.exit(1)
+    }
+
+    // ❌ Bloqueia debugger
+    if (diff.includes('debugger')) {
+      console.error(`❌ Commit bloqueado: debugger encontrado em ${file}`)
+      process.exit(1)
+    }
+
+    // ❌ Bloqueia console.error fora de controllers
+    if (
+      diff.includes('console.error(') &&
+      !file.includes('controllers')
+    ) {
+      console.error(
+        `❌ Commit bloqueado: console.error só é permitido em controllers (${file})`
+      )
       process.exit(1)
     }
   }
