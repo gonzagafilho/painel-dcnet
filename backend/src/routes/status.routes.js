@@ -1,15 +1,9 @@
 import { Router } from 'express'
-import fs from 'fs'
+import StatusController from '../controllers/status.controller.js'
 
 const router = Router()
 
-router.get('/status', (req, res) => {
-  try {
-    const raw = fs.readFileSync('./data/status.json')
-    res.json(JSON.parse(raw))
-  } catch {
-    res.status(500).json({ error: 'Status indisponível' })
-  }
-})
+router.get('/', StatusController.status)
 
 export default router
+

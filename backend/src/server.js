@@ -36,7 +36,7 @@ app.use('/api/atendimentos', atendimentoRoutes)
 app.use('/api', whatsappRoutes)
 app.use('/api', relatoriosRoutes)
 app.use('/api', healthRoutes)
-app.use('/api', statusRoutes)
+app.use('/api/status', statusRoutes)
 
 const PORT = process.env.PORT || 3001
 
