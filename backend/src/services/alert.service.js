@@ -16,6 +16,7 @@ export async function enviarAlerta(mensagem) {
       }
     )
   } catch {
-    // silêncio proposital (não derruba a API)
+    // silêncio proposital
   }
 }
+
