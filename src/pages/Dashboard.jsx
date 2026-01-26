@@ -26,9 +26,11 @@ export default function Dashboard() {
     navigate('/login')
   }
 
+  // 🔒 proteção
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) navigate('/login')
+    if (!localStorage.getItem('token')) {
+      navigate('/login')
+    }
   }, [navigate])
 
   async function carregarDados(dias = periodoAtivo, inicial = false) {
@@ -36,19 +38,16 @@ export default function Dashboard() {
       inicial ? setLoadingInicial(true) : setLoadingFiltro(true)
       setErro(null)
 
-      const resumoResponse = await api.get(`/dashboard/resumo?dias=${dias}`)
-      setDados(resumoResponse.data)
+      const [resumo, dia, status] = await Promise.all([
+        api.get(`/dashboard/resumo?dias=${dias}`),
+        api.get(`/dashboard/atendimentos-dia?dias=${dias}`),
+        api.get(`/dashboard/atendimentos-status?dias=${dias}`)
+      ])
 
-      const graficoResponse = await api.get(
-        `/dashboard/atendimentos-dia?dias=${dias}`
-      )
-      setGraficoDia(graficoResponse.data)
-
-      const statusResponse = await api.get(
-        `/dashboard/atendimentos-status?dias=${dias}`
-      )
-      setGraficoStatus(statusResponse.data)
-    } catch (err) {
+      setDados(resumo.data)
+      setGraficoDia(dia.data)
+      setGraficoStatus(status.data)
+    } catch {
       setErro('Erro ao carregar dados do painel')
     } finally {
       setLoadingInicial(false)
@@ -58,16 +57,20 @@ export default function Dashboard() {
 
   async function carregarStatusServidor() {
     try {
-      const response = await api.get('/status')
-      setStatusServidor(response.data)
+      const { data } = await api.get('/status')
+      setStatusServidor({
+        api: data.api,
+        cpu: Number(data.cpu) || 0,
+        ram: Number(data.ram) || 0,
+        disk: Number(data.disk) || 0
+      })
     } catch {
-      setStatusServidor({ api: 'offline' })
+      setStatusServidor({ api: 'offline', cpu: 0, ram: 0, disk: 0 })
     }
   }
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
+    if (localStorage.getItem('token')) {
       carregarDados(periodoAtivo, true)
       carregarStatusServidor()
     }
@@ -75,7 +78,12 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(carregarStatusServidor, 30000)
+    const interval = setInterval(() => {
+      if (localStorage.getItem('token')) {
+        carregarStatusServidor()
+      }
+    }, 30000)
+
     return () => clearInterval(interval)
   }, [])
 
@@ -87,7 +95,7 @@ export default function Dashboard() {
   if (loadingInicial) return <DashboardSkeleton />
 
   if (erro) {
-    return <p style={{ color: 'red', padding: '24px' }}>{erro}</p>
+    return <p style={{ color: 'red', padding: 24 }}>{erro}</p>
   }
 
   return (
@@ -98,7 +106,7 @@ export default function Dashboard() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          paddingBottom: '16px',
+          paddingBottom: 16,
           borderBottom: '1px solid #374151'
         }}
       >
@@ -110,7 +118,7 @@ export default function Dashboard() {
             color: '#fff',
             border: 'none',
             padding: '8px 16px',
-            borderRadius: '6px',
+            borderRadius: 6,
             fontWeight: 'bold'
           }}
         >
@@ -118,14 +126,14 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* STATUS DO SERVIDOR */}
+      {/* STATUS SERVIDOR */}
       {statusServidor && (
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '20px',
-            marginTop: '20px'
+            gap: 20,
+            marginTop: 20
           }}
         >
           <StatusCard
@@ -133,54 +141,23 @@ export default function Dashboard() {
             valor={statusServidor.api === 'online' ? 'ONLINE' : 'OFFLINE'}
             cor={statusServidor.api === 'online' ? '#22c55e' : '#dc2626'}
           />
-          <StatusCard
-            titulo="CPU"
-            valor={`${statusServidor.cpu}%`}
-            cor={
-              statusServidor.cpu >= 85
-                ? '#dc2626'
-                : statusServidor.cpu >= 70
-                ? '#facc15'
-                : '#22c55e'
-            }
-          />
-          <StatusCard
-            titulo="RAM"
-            valor={`${statusServidor.ram}%`}
-            cor={
-              statusServidor.ram >= 85
-                ? '#dc2626'
-                : statusServidor.ram >= 70
-                ? '#facc15'
-                : '#22c55e'
-            }
-          />
-          <StatusCard
-            titulo="DISCO"
-            valor={`${statusServidor.disk}%`}
-            cor={
-              statusServidor.disk >= 90
-                ? '#dc2626'
-                : statusServidor.disk >= 80
-                ? '#facc15'
-                : '#22c55e'
-            }
-          />
+          <StatusCard titulo="CPU" valor={`${statusServidor.cpu}%`} />
+          <StatusCard titulo="RAM" valor={`${statusServidor.ram}%`} />
+          <StatusCard titulo="DISCO" valor={`${statusServidor.disk}%`} />
         </div>
       )}
 
-      {/* BOTÕES */}
-      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+      {/* FILTRO */}
+      <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
         {[1, 7, 15, 30].map((dias) => (
           <button
             key={dias}
             onClick={() => mudarPeriodo(dias)}
             style={{
               padding: '8px 16px',
-              borderRadius: '6px',
+              borderRadius: 6,
               border: 'none',
-              background:
-                periodoAtivo === dias ? '#3b82f6' : '#374151',
+              background: periodoAtivo === dias ? '#3b82f6' : '#374151',
               color: '#fff'
             }}
           >
@@ -190,18 +167,18 @@ export default function Dashboard() {
       </div>
 
       {loadingFiltro && (
-        <p style={{ color: '#9ca3af', marginTop: '10px' }}>
+        <p style={{ color: '#9ca3af', marginTop: 10 }}>
           Atualizando dados...
         </p>
       )}
 
-      {/* CARDS EXISTENTES */}
+      {/* CARDS */}
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '20px',
-          marginTop: '20px'
+          gap: 20,
+          marginTop: 20
         }}
       >
         <Card titulo="Clientes" valor={dados?.clientes} cor="#3b82f6" icone="👥" />
@@ -217,4 +194,5 @@ export default function Dashboard() {
     </div>
   )
 }
+
 
