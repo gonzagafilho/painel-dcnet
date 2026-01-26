@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config() // ⬅️ SEMPRE PRIMEIRO
 
 import express from 'express'
+import cors from 'cors'
 import cron from 'node-cron'
 
 // rotas
@@ -21,6 +22,19 @@ import { collectStatus } from './services/statusCollector.js'
 import { connectMongo } from './database/mongoose.js'
 
 const app = express()
+
+// ✅ CORS (DEV + PRODUÇÃO)
+app.use(
+  cors({
+    origin: [
+      'https://painelservidor.dcinfinity.net.br',
+      'http://localhost:5173'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  })
+)
 
 app.use(express.json())
 
@@ -42,13 +56,10 @@ const PORT = process.env.PORT || 3001
 
 async function startServer() {
   try {
-    // 🟢 conexão Mongo
     await connectMongo()
 
-    // ⏰ inicia relatório automático por e-mail
     iniciarRelatorioAutomatico()
 
-    // ⏰ coleta de status do servidor a cada 5 minutos
     cron.schedule('*/5 * * * *', async () => {
       try {
         await collectStatus()
@@ -59,7 +70,11 @@ async function startServer() {
       }
     })
 
-    app.listen(PORT)
+    app.listen(PORT, () => {
+      process.stdout.write(
+        `API DC NET rodando na porta ${PORT}\n`
+      )
+    })
   } catch (error) {
     process.stderr.write(
       `Erro ao iniciar servidor: ${error.message}\n`
