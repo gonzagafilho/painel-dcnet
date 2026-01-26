@@ -1,126 +1,137 @@
 import { useEffect, useState } from 'react'
-import api from '../services/api'
+import { getStatusAtual, getStatusHistory } from '../services/status'
+import StatusCard from '../components/StatusCard'
+import StatusHistoryChart from '../components/StatusHistoryChart'
 
 const REFRESH_MS = 30000
 
-// ===== REGRAS DE ALERTA =====
-function getNivel(valor, tipo) {
-  if (tipo === 'cpu' || tipo === 'ram') {
-    if (valor >= 85) return 'critico'
-    if (valor >= 70) return 'alerta'
-    return 'ok'
-  }
-
-  if (tipo === 'disco') {
-    if (valor >= 90) return 'critico'
-    if (valor >= 80) return 'alerta'
-    return 'ok'
-  }
-
-  return 'ok'
-}
-
-function corNivel(nivel) {
-  if (nivel === 'critico') return '#ef4444'
-  if (nivel === 'alerta') return '#f59e0b'
-  return '#22c55e'
-}
-
-// ===== COMPONENTE PRINCIPAL =====
 export default function Status() {
   const [status, setStatus] = useState(null)
+  const [history, setHistory] = useState([])
+  const [hours, setHours] = useState(24)
   const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState(null)
 
-  async function loadStatus() {
+  async function carregarTudo(h = hours) {
     try {
-      const res = await api.get('/status')
-      setStatus(res.data)
+      setLoading(true)
+      setErro(null)
+
+      const [statusAtual, historico] = await Promise.all([
+        getStatusAtual(),
+        getStatusHistory(h)
+      ])
+
+      setStatus(statusAtual)
+      setHistory(historico)
     } catch {
-      setStatus(null)
+      setErro('Erro ao carregar status do servidor')
     } finally {
       setLoading(false)
     }
   }
 
+  // carga inicial + auto refresh
   useEffect(() => {
-    loadStatus()
-    const interval = setInterval(loadStatus, REFRESH_MS)
+    carregarTudo()
+
+    const interval = setInterval(() => {
+      carregarTudo()
+    }, REFRESH_MS)
+
     return () => clearInterval(interval)
+    // eslint-disable-next-line
   }, [])
 
-  if (loading) return <p>Carregando status...</p>
-  if (!status) return <p>Status indisponível</p>
+  function mudarPeriodo(h) {
+    setHours(h)
+    carregarTudo(h)
+  }
+
+  if (loading) return <p style={{ padding: 24 }}>Carregando status...</p>
+
+  if (erro) {
+    return (
+      <p style={{ color: 'red', padding: 24 }}>
+        {erro}
+      </p>
+    )
+  }
+
+  if (!status) {
+    return <p style={{ padding: 24 }}>Status indisponível</p>
+  }
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2>Status do Servidor</h2>
+    <div style={{ padding: 24, width: '100%' }}>
+      <h2 style={{ color: '#fff', marginBottom: 16 }}>
+        Status do Servidor
+      </h2>
 
       {/* CARDS */}
-      <div style={{ display: 'flex', gap: 16, marginTop: 20 }}>
-        <Card
-          title="API"
-          value={status.api === 'online' ? 'ONLINE' : 'OFFLINE'}
-          cor={status.api === 'online' ? '#22c55e' : '#ef4444'}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 20
+        }}
+      >
+        <StatusCard
+          titulo="API"
+          valor={status.api === 'online' ? 'ONLINE' : 'OFFLINE'}
+          cor={status.api === 'online' ? '#22c55e' : '#dc2626'}
         />
 
-        <Card
-          title="CPU (%)"
-          value={status.cpu}
-          tipo="cpu"
+        <StatusCard
+          titulo="CPU"
+          valor={`${status.cpu}%`}
         />
 
-        <Card
-          title="RAM (%)"
-          value={status.ram}
-          tipo="ram"
+        <StatusCard
+          titulo="RAM"
+          valor={`${status.ram}%`}
         />
 
-        <Card
-          title="DISCO (%)"
-          value={status.disk}
-          tipo="disco"
-        />
-
-        <Card
-          title="Uptime (s)"
-          value={Math.floor(status.uptime)}
+        <StatusCard
+          titulo="DISCO"
+          valor={`${status.disk}%`}
         />
       </div>
 
-      <p style={{ opacity: 0.6, marginTop: 12 }}>
-        Atualiza automaticamente a cada 30 segundos
-      </p>
-    </div>
-  )
-}
+      {/* FILTRO */}
+      <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+        {[1, 6, 24, 168].map((h) => (
+          <button
+            key={h}
+            onClick={() => mudarPeriodo(h)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 6,
+              border: 'none',
+              cursor: 'pointer',
+              background: hours === h ? '#3b82f6' : '#374151',
+              color: '#fff'
+            }}
+          >
+            {h === 1 ? '1h' : h === 6 ? '6h' : h === 24 ? '24h' : '7 dias'}
+          </button>
+        ))}
+      </div>
 
-// ===== CARD COM ALERTA VISUAL =====
-function Card({ title, value, tipo, cor }) {
-  const nivel = tipo ? getNivel(Number(value), tipo) : 'ok'
-  const corFinal = cor || corNivel(nivel)
-
-  return (
-    <div
-      style={{
-        background: '#111827',
-        color: '#fff',
-        padding: 20,
-        borderRadius: 12,
-        minWidth: 160,
-        border: tipo ? `2px solid ${corFinal}` : `2px solid ${corFinal}`
-      }}
-    >
-      <p style={{ opacity: 0.7 }}>{title}</p>
-
-      <h3 style={{ color: corFinal }}>
-        {value}
-      </h3>
-
-      {nivel !== 'ok' && (
-        <span style={{ fontSize: 12, fontWeight: 'bold', color: corFinal }}>
-          {nivel.toUpperCase()}
-        </span>
+      {/* GRÁFICO */}
+      {history.length > 0 ? (
+        <div style={{ marginTop: 24 }}>
+          <StatusHistoryChart data={history} />
+        </div>
+      ) : (
+        <p style={{ marginTop: 24, opacity: 0.6 }}>
+          Nenhum dado histórico disponível
+        </p>
       )}
+
+      <p style={{ opacity: 0.6, marginTop: 8 }}>
+        Atualização automática a cada 30 segundos
+      </p>
     </div>
   )
 }
