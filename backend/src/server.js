@@ -24,7 +24,16 @@ import { connectMongo } from './database/mongoose.js'
 const app = express()
 
 // middlewares globais
-app.use(cors())
+app.use(
+  cors({
+    origin: [
+      'https://painelservidor.dcinfinity.net.br'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  })
+)
 app.use(express.json())
 
 // rota teste
