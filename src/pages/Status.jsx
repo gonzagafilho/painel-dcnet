@@ -5,6 +5,23 @@ import StatusHistoryChart from '../components/StatusHistoryChart'
 
 const REFRESH_MS = 30000
 
+// ==============================
+// AVALIAÇÃO DE NÍVEL DO SERVIDOR
+// ==============================
+function avaliarNivel(status) {
+  if (!status) return { nivel: 'OFFLINE', cor: '#6b7280' }
+
+  if (status.cpu >= 85 || status.ram >= 85 || status.disk >= 90) {
+    return { nivel: 'CRÍTICO', cor: '#dc2626' }
+  }
+
+  if (status.cpu >= 70 || status.ram >= 70 || status.disk >= 80) {
+    return { nivel: 'ALERTA', cor: '#f59e0b' }
+  }
+
+  return { nivel: 'OK', cor: '#22c55e' }
+}
+
 export default function Status() {
   const [status, setStatus] = useState(null)
   const [history, setHistory] = useState([])
@@ -48,7 +65,9 @@ export default function Status() {
     carregarTudo(h)
   }
 
-  if (loading) return <p style={{ padding: 24 }}>Carregando status...</p>
+  if (loading) {
+    return <p style={{ padding: 24 }}>Carregando status...</p>
+  }
 
   if (erro) {
     return (
@@ -62,11 +81,35 @@ export default function Status() {
     return <p style={{ padding: 24 }}>Status indisponível</p>
   }
 
+  const nivelServidor = avaliarNivel(status)
+
   return (
     <div style={{ padding: 24, width: '100%' }}>
       <h2 style={{ color: '#fff', marginBottom: 16 }}>
         Status do Servidor
       </h2>
+
+      {/* BADGE DE STATUS */}
+      <div
+        style={{
+          display: 'inline-block',
+          padding: '6px 14px',
+          borderRadius: 999,
+          background: nivelServidor.cor,
+          color: '#fff',
+          fontWeight: 'bold',
+          fontSize: 13,
+          marginBottom: 16
+        }}
+      >
+        STATUS: {nivelServidor.nivel}
+      </div>
+
+      {nivelServidor.nivel !== 'OK' && (
+        <p style={{ color: '#9ca3af', marginBottom: 16 }}>
+          Atenção: recursos do servidor acima do limite recomendado.
+        </p>
+      )}
 
       {/* CARDS */}
       <div
@@ -82,20 +125,9 @@ export default function Status() {
           cor={status.api === 'online' ? '#22c55e' : '#dc2626'}
         />
 
-        <StatusCard
-          titulo="CPU"
-          valor={`${status.cpu}%`}
-        />
-
-        <StatusCard
-          titulo="RAM"
-          valor={`${status.ram}%`}
-        />
-
-        <StatusCard
-          titulo="DISCO"
-          valor={`${status.disk}%`}
-        />
+        <StatusCard titulo="CPU" valor={`${status.cpu}%`} />
+        <StatusCard titulo="RAM" valor={`${status.ram}%`} />
+        <StatusCard titulo="DISCO" valor={`${status.disk}%`} />
       </div>
 
       {/* FILTRO */}
