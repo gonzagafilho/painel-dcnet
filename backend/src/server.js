@@ -3,6 +3,7 @@ dotenv.config() // ⬅️ SEMPRE PRIMEIRO
 
 import express from 'express'
 import cors from 'cors'
+import cron from 'node-cron'
 
 // rotas
 import authRoutes from './routes/auth.routes.js'
@@ -12,8 +13,10 @@ import whatsappRoutes from './routes/whatsapp.routes.js'
 import relatoriosRoutes from './routes/relatorios.routes.js'
 import healthRoutes from './routes/health.routes.js'
 import statusRoutes from './routes/status.routes.js'
-// ⏰ CRON
+
+// ⏰ CRONS
 import { iniciarRelatorioAutomatico } from './services/relatorio.cron.js'
+import { collectStatus } from './services/statusCollector.js'
 
 // conexão Mongo
 import { connectMongo } from './database/mongoose.js'
@@ -48,14 +51,24 @@ async function startServer() {
     // ⏰ inicia relatório automático por e-mail
     iniciarRelatorioAutomatico()
 
-    app.listen(PORT, () => {
-      console.log(`🚀 API DC NET rodando na porta ${PORT}`)
+    // ⏰ coleta de status do servidor a cada 5 minutos
+    cron.schedule('*/5 * * * *', async () => {
+      try {
+        await collectStatus()
+      } catch (err) {
+        process.stderr.write(
+          `Erro ao coletar status: ${err.message}\n`
+        )
+      }
     })
+
+    app.listen(PORT)
   } catch (error) {
-    console.error('❌ Erro ao iniciar servidor:', error)
+    process.stderr.write(
+      `Erro ao iniciar servidor: ${error.message}\n`
+    )
     process.exit(1)
   }
 }
 
 startServer()
-

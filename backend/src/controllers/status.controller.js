@@ -1,16 +1,10 @@
 import os from 'os'
-import fs from 'fs'
-
-function getDiskUsage() {
-  try {
-    const stat = fs.statSync('/')
-    return 0 // fallback simples (corrigimos depois)
-  } catch {
-    return 0
-  }
-}
+import StatusHistory from '../models/StatusHistory.js'
 
 export default {
+  // ===============================
+  // STATUS EM TEMPO REAL (/api/status)
+  // ===============================
   status(req, res) {
     try {
       // CPU
@@ -33,7 +27,7 @@ export default {
       const freeMem = os.freemem()
       const ram = Math.round(((totalMem - freeMem) / totalMem) * 100)
 
-      // DISK (simples, ajustaremos depois)
+      // DISCO (por enquanto 0 — evoluímos depois)
       const disk = 0
 
       // UPTIME
@@ -52,6 +46,26 @@ export default {
         api: 'offline',
         error: 'Erro ao coletar status'
       })
+    }
+  },
+
+  // =====================================
+  // HISTÓRICO DE STATUS (/api/status/history)
+  // =====================================
+  async history(req, res) {
+    try {
+      const hours = Number(req.query.hours || 24)
+      const since = new Date(Date.now() - hours * 60 * 60 * 1000)
+
+      const data = await StatusHistory.find({
+        createdAt: { $gte: since }
+      })
+        .sort({ createdAt: 1 })
+        .lean()
+
+      res.json(data)
+    } catch (err) {
+      res.status(500).json({ error: 'Erro ao carregar histórico' })
     }
   }
 }
