@@ -1,31 +1,39 @@
-import os from 'os'
 import StatusHistory from '../models/StatusHistory.js'
+import { enviarAlerta } from './alert.service.js'
+
+let ultimoNivel = 'OK'
+
+function avaliarNivel({ cpu, ram, disk }) {
+  if (cpu >= 85 || ram >= 85 || disk >= 90) return 'CRÍTICO'
+  if (cpu >= 70 || ram >= 70 || disk >= 80) return 'ALERTA'
+  return 'OK'
+}
 
 export async function collectStatus() {
-  // CPU
-  const cpus = os.cpus()
-  const idle = cpus.reduce((a, c) => a + c.times.idle, 0)
-  const total = cpus.reduce(
-    (a, c) => a + c.times.user + c.times.nice + c.times.sys + c.times.idle + c.times.irq,
-    0
-  )
-  const cpu = Math.round((1 - idle / total) * 100)
-
-  // RAM
-  const totalMem = os.totalmem()
-  const freeMem = os.freemem()
-  const ram = Math.round(((totalMem - freeMem) / totalMem) * 100)
-
-  // DISCO (mantemos 0 por enquanto, como no status atual)
-  const disk = 0
-
-  const uptime = os.uptime()
-
-  await StatusHistory.create({
+  const status = await StatusHistory.create({
     api: 'online',
-    cpu,
-    ram,
-    disk,
-    uptime
+    cpu: global.serverStatus.cpu,
+    ram: global.serverStatus.ram,
+    disk: global.serverStatus.disk,
+    uptime: global.serverStatus.uptime
   })
+
+  const nivelAtual = avaliarNivel(status)
+
+  // 🚨 ALERTA SÓ SE MUDAR DE NÍVEL
+  if (nivelAtual !== ultimoNivel) {
+    ultimoNivel = nivelAtual
+
+    if (nivelAtual !== 'OK') {
+      await enviarAlerta(
+        `🚨 *ALERTA DC NET*\n\n` +
+        `Status: *${nivelAtual}*\n` +
+        `CPU: ${status.cpu}%\n` +
+        `RAM: ${status.ram}%\n` +
+        `DISCO: ${status.disk}%`
+      )
+    }
+  }
+
+  return status
 }
