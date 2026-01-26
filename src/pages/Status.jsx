@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
-import StatusChart from '../components/StatusChart'
 
-const REFRESH_MS = 30000 // 30s
+const REFRESH_MS = 30000
 
 // ===== REGRAS DE ALERTA =====
 function getNivel(valor, tipo) {
   if (tipo === 'cpu' || tipo === 'ram') {
-    if (valor > 85) return 'critico'
-    if (valor > 70) return 'alerta'
+    if (valor >= 85) return 'critico'
+    if (valor >= 70) return 'alerta'
     return 'ok'
   }
 
   if (tipo === 'disco') {
-    if (valor > 90) return 'critico'
-    if (valor > 80) return 'alerta'
+    if (valor >= 90) return 'critico'
+    if (valor >= 80) return 'alerta'
     return 'ok'
   }
 
@@ -22,24 +21,22 @@ function getNivel(valor, tipo) {
 }
 
 function corNivel(nivel) {
-  if (nivel === 'critico') return '#ef4444' // vermelho
-  if (nivel === 'alerta') return '#f59e0b' // laranja
-  return '#22c55e' // verde
+  if (nivel === 'critico') return '#ef4444'
+  if (nivel === 'alerta') return '#f59e0b'
+  return '#22c55e'
 }
 
 // ===== COMPONENTE PRINCIPAL =====
 export default function Status() {
   const [status, setStatus] = useState(null)
-  const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
 
   async function loadStatus() {
     try {
       const res = await api.get('/status')
-      setHistory(res.data)
-      setStatus(res.data[res.data.length - 1])
-    } catch (err) {
-       // erro tratado silenciosamente (logado no backend)
+      setStatus(res.data)
+    } catch {
+      setStatus(null)
     } finally {
       setLoading(false)
     }
@@ -61,37 +58,36 @@ export default function Status() {
       {/* CARDS */}
       <div style={{ display: 'flex', gap: 16, marginTop: 20 }}>
         <Card
+          title="API"
+          value={status.api === 'online' ? 'ONLINE' : 'OFFLINE'}
+          cor={status.api === 'online' ? '#22c55e' : '#ef4444'}
+        />
+
+        <Card
           title="CPU (%)"
-          value={(status.cpu_load * 100).toFixed(1)}
-          suffix="%"
+          value={status.cpu}
           tipo="cpu"
         />
 
         <Card
           title="RAM (%)"
-          value={status.ram_percent}
-          suffix="%"
+          value={status.ram}
           tipo="ram"
         />
 
         <Card
-          title="Disco (%)"
-          value={status.disk_percent}
-          suffix="%"
+          title="DISCO (%)"
+          value={status.disk}
           tipo="disco"
         />
 
         <Card
-          title="Uptime"
-          value={status.uptime_min}
-          suffix=" min"
+          title="Uptime (s)"
+          value={Math.floor(status.uptime)}
         />
       </div>
 
-      {/* GRÁFICO */}
-      <StatusChart data={history} />
-
-      <p style={{ opacity: 0.6, marginTop: 8 }}>
+      <p style={{ opacity: 0.6, marginTop: 12 }}>
         Atualiza automaticamente a cada 30 segundos
       </p>
     </div>
@@ -99,9 +95,9 @@ export default function Status() {
 }
 
 // ===== CARD COM ALERTA VISUAL =====
-function Card({ title, value, suffix = '', tipo }) {
+function Card({ title, value, tipo, cor }) {
   const nivel = tipo ? getNivel(Number(value), tipo) : 'ok'
-  const cor = corNivel(nivel)
+  const corFinal = cor || corNivel(nivel)
 
   return (
     <div
@@ -111,24 +107,17 @@ function Card({ title, value, suffix = '', tipo }) {
         padding: 20,
         borderRadius: 12,
         minWidth: 160,
-        border: tipo ? `2px solid ${cor}` : 'none'
+        border: tipo ? `2px solid ${corFinal}` : `2px solid ${corFinal}`
       }}
     >
       <p style={{ opacity: 0.7 }}>{title}</p>
 
-      <h3 style={{ color: cor }}>
+      <h3 style={{ color: corFinal }}>
         {value}
-        {suffix}
       </h3>
 
       {nivel !== 'ok' && (
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 'bold',
-            color: cor
-          }}
-        >
+        <span style={{ fontSize: 12, fontWeight: 'bold', color: corFinal }}>
           {nivel.toUpperCase()}
         </span>
       )}
